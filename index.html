@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proeve.net - Weiterleitung</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --text-primary: #e8e8e8;
+            --text-secondary: #a0a0a0;
+            --accent-gold: #d4af37;
+            --accent-hover: #f0c952;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(26, 26, 26, 0.8);
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-style: italic;
+        }
+
+        .loading-container {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .spinner {
+            border: 3px solid rgba(212, 175, 55, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--accent-gold);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .target-url {
+            color: var(--accent-gold);
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-gold);
+        }
+
+        .error {
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            color: #ff6b6b;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .error h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #ff8787;
+        }
+
+        .manual-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 0.8rem 2rem;
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        .manual-link:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .info strong {
+            color: var(--accent-gold);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proeve.net</h1>
+        <p class="subtitle">Weiterleitungsservice</p>
+        
+        <div class="loading-container" id="loadingContainer">
+            <div class="spinner"></div>
+            <p class="message">Weiterleitung wird vorbereitet...</p>
+            <div class="target-url" id="targetUrl"></div>
+        </div>
+
+        <div class="info">
+            <p><strong>Verwendung:</strong></p>
+            <p>Direkt: <code>go.proeve.net?fwd=https://example.com</code></p>
+            <p>Verzeichnis: <code>go.proeve.net?fwd-v=go1</code></p>
+        </div>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const directUrl = urlParams.get('fwd');
+        const directoryId = urlParams.get('fwd-v');
+
+        const loadingContainer = document.getElementById('loadingContainer');
+        const targetUrlElement = document.getElementById('targetUrl');
+
+        async function loadDirectory() {
+            try {
+                const response = await fetch('directory.txt');
+                if (!response.ok) {
+                    throw new Error('Verzeichnis konnte nicht geladen werden');
+                }
+                const text = await response.text();
+                const lines = text.split('\n').filter(line => line.trim());
+                const directory = {};
+                
+                lines.forEach(line => {
+                    const [id, url] = line.split(';').map(s => s.trim());
+                    if (id && url) {
+                        directory[id] = url;
+                    }
+                });
+                
+                return directory;
+            } catch (error) {
+                console.error('Error loading directory:', error);
+                return null;
+            }
+        }
+
+        function validateUrl(url) {
+            try {
+                const parsed = new URL(url);
+                return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+            } catch {
+                return false;
+            }
+        }
+
+        function showError(title, message, url = null) {
+            loadingContainer.innerHTML = `
+                <div class="error">
+                    <h2>${title}</h2>
+                    <p>${message}</p>
+                    ${url ? `<a href="${url}" class="manual-link">Manuell weiter</a>` : ''}
+                </div>
+            `;
+        }
+
+        async function redirect() {
+            let targetUrl = null;
+
+            // Direct URL forwarding
+            if (directUrl) {
+                if (validateUrl(directUrl)) {
+                    targetUrl = directUrl;
+                } else {
+                    showError(
+                        'Ungültige URL',
+                        'Die angegebene URL ist nicht gültig. Bitte überprüfen Sie das Format.',
+                        'https://proeve.net'
+                    );
+                    return;
+                }
+            }
+            // Directory-based forwarding
+            else if (directoryId) {
+                const directory = await loadDirectory();
+                
+                if (!directory) {
+                    showError(
+                        'Verzeichnis-Fehler',
+                        'Das URL-Verzeichnis konnte nicht geladen werden.',
+                        'https://proeve.net'
+                    );
+                    return;
+                }
+
+                if (directory[directoryId]) {
+                    targetUrl = directory[directoryId];
+                } else {
+                    showError(
+                        'ID nicht gefunden',
+                        `Die Verzeichnis-ID "${directoryId}" existiert nicht.`,
+                        'https://proeve.net'
+                    );
+                    return;
+                }
+            }
+            // No parameters provided
+            else {
+                targetUrl = 'https://proeve.net';
+            }
+
+            // Display target URL and redirect
+            if (targetUrl) {
+                targetUrlElement.textContent = targetUrl;
+                
+                // Redirect after 2 seconds
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 2000);
+            }
+        }
+
+        // Start redirect process
+        redirect();
+    </script>
+</body>
+</html>

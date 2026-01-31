@@ -1,0 +1,8 @@
+# URL Directory for proeve.net forwarding service
+# Format: ID;URL
+# Example:
+# go1;https://google.com
+# go2;https://example.com
+
+# Add your forwarding entries below:
+go1;https://proeve.net

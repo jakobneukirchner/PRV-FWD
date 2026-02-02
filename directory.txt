@@ -7,3 +7,4 @@
 # Add your forwarding entries below:
 go1;https://proeve.net
 shop;https://proeve.net/shop
+presse;https://proeve.net/archiv/medienart/presse/

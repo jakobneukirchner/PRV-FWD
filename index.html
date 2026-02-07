@@ -155,6 +155,23 @@
             color: var(--text-primary);
         }
 
+        .warning-text .var-countdown {
+            color: var(--accent-gold);
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .warning-text .var-url {
+            color: var(--accent-gold);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .warning-text .var-delay {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
         .error {
             background: rgba(255, 50, 50, 0.1);
             border: 1px solid rgba(255, 50, 50, 0.3);
@@ -269,7 +286,7 @@
         <div class="info">
             <p><strong>Hinweis:</strong></p>
             <p>Für den Inhalt verlinkter externer Internetseiten wird keine Gewähr übernommen, da die Verantwortung hierfür ausschließlich beim jeweiligen Anbieter liegt.</p>
-            <p>Version: <code>V2.1.0</code></p>
+            <p>Version: <code>V2.2.0</code></p>
         </div>
     </div>
 
@@ -278,16 +295,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         const directUrl = urlParams.get('fwd');
         const directoryId = urlParams.get('fwd-v');
-        const delayParam = urlParams.get('delay'); // Delay in seconds
-        const modeParam = urlParams.get('mode'); // auto, instant, button, button-delay, wait
+        const delayParam = urlParams.get('delay');
+        const modeParam = urlParams.get('mode');
 
         const loadingContainer = document.getElementById('loadingContainer');
         const targetUrlElement = document.getElementById('targetUrl');
 
-        let redirectMode = 'auto'; // Default: auto redirect after 2 seconds
-        let redirectDelay = 2; // Default: 2 seconds
+        let redirectMode = 'auto';
+        let redirectDelay = 2;
+        let countdownInterval = null;
 
-        // Parse mode parameter
         if (modeParam) {
             const validModes = ['auto', 'instant', 'button', 'button-delay', 'wait'];
             if (validModes.includes(modeParam)) {
@@ -295,7 +312,6 @@
             }
         }
 
-        // Parse delay parameter
         if (delayParam) {
             const parsedDelay = parseInt(delayParam);
             if (!isNaN(parsedDelay) && parsedDelay >= 0 && parsedDelay <= 300) {
@@ -358,21 +374,46 @@
         }
 
         function executeRedirect(targetUrl) {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
             window.location.href = targetUrl;
         }
 
-        function startCountdown(seconds, callback) {
+        function replaceVariables(text, url, delay, currentCountdown) {
+            return text
+                .replace(/\{countdown\}/g, `<span class="var-countdown">${currentCountdown}</span>`)
+                .replace(/\{url\}/g, `<span class="var-url">${escapeHtml(url)}</span>`)
+                .replace(/\{delay\}/g, `<span class="var-delay">${delay}</span>`);
+        }
+
+        function updateVariablesInText(url, delay, currentCountdown) {
+            // Update all countdown variables
+            const countdownElements = document.querySelectorAll('.var-countdown');
+            countdownElements.forEach(el => {
+                el.textContent = currentCountdown;
+            });
+        }
+
+        function startCountdown(seconds, callback, url, delay) {
             let remaining = seconds;
             const countdownElement = document.getElementById('countdown');
             
-            const interval = setInterval(() => {
+            // Initial update
+            if (countdownElement) {
+                countdownElement.textContent = remaining;
+            }
+            updateVariablesInText(url, delay, remaining);
+            
+            countdownInterval = setInterval(() => {
                 remaining--;
                 if (countdownElement) {
                     countdownElement.textContent = remaining;
                 }
+                updateVariablesInText(url, delay, remaining);
                 
                 if (remaining <= 0) {
-                    clearInterval(interval);
+                    clearInterval(countdownInterval);
                     callback();
                 }
             }, 1000);
@@ -388,7 +429,6 @@
             targetUrlElement.textContent = targetUrl;
 
             if (mode === 'instant') {
-                // Instant redirect
                 loadingContainer.innerHTML = `
                     <p class="message">Weiterleitung...</p>
                     <div class="target-url">${escapeHtml(targetUrl)}</div>
@@ -396,7 +436,6 @@
                 executeRedirect(targetUrl);
             }
             else if (mode === 'auto') {
-                // Auto redirect with countdown
                 loadingContainer.innerHTML = `
                     <div class="spinner"></div>
                     <p class="message">Weiterleitung in <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
@@ -406,10 +445,9 @@
                         <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                     </div>
                 `;
-                startCountdown(delay, () => executeRedirect(targetUrl));
+                startCountdown(delay, () => executeRedirect(targetUrl), targetUrl, delay);
             }
             else if (mode === 'wait') {
-                // Wait mode - no button, must wait
                 loadingContainer.innerHTML = `
                     <div class="spinner"></div>
                     <p class="message">Bitte warten Sie <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
@@ -418,10 +456,9 @@
                         <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                     </div>
                 `;
-                startCountdown(delay, () => executeRedirect(targetUrl));
+                startCountdown(delay, () => executeRedirect(targetUrl), targetUrl, delay);
             }
             else if (mode === 'button') {
-                // Button click required
                 loadingContainer.innerHTML = `
                     <p class="message">Klicken Sie auf den Button, um fortzufahren</p>
                     <div class="target-url">${escapeHtml(targetUrl)}</div>
@@ -432,7 +469,6 @@
                 `;
             }
             else if (mode === 'button-delay') {
-                // Button appears after delay
                 loadingContainer.innerHTML = `
                     <div class="spinner"></div>
                     <p class="message">Bitte warten Sie <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
@@ -454,7 +490,7 @@
                         const message = document.querySelector('.message');
                         if (message) message.textContent = 'Sie können jetzt fortfahren';
                     }
-                });
+                }, targetUrl, delay);
             }
         }
 
@@ -464,11 +500,14 @@
             const warningMode = entry.warningMode || 'auto';
             const warningDelay = entry.warningDelay || 5;
 
+            // Replace variables in warning text
+            const processedWarning = replaceVariables(warningText, targetUrl, warningDelay, warningDelay);
+
             if (warningMode === 'auto') {
                 loadingContainer.innerHTML = `
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
-                        <div class="warning-text">${warningText}</div>
+                        <div class="warning-text">${processedWarning}</div>
                         <p>Weiterleitung in <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
                         <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
@@ -477,13 +516,13 @@
                         </div>
                     </div>
                 `;
-                startCountdown(warningDelay, () => executeRedirect(targetUrl));
+                startCountdown(warningDelay, () => executeRedirect(targetUrl), targetUrl, warningDelay);
             }
             else if (warningMode === 'wait') {
                 loadingContainer.innerHTML = `
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
-                        <div class="warning-text">${warningText}</div>
+                        <div class="warning-text">${processedWarning}</div>
                         <p>Weiterleitung in <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
                         <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
@@ -491,13 +530,13 @@
                         </div>
                     </div>
                 `;
-                startCountdown(warningDelay, () => executeRedirect(targetUrl));
+                startCountdown(warningDelay, () => executeRedirect(targetUrl), targetUrl, warningDelay);
             }
             else if (warningMode === 'button') {
                 loadingContainer.innerHTML = `
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
-                        <div class="warning-text">${warningText}</div>
+                        <div class="warning-text">${processedWarning}</div>
                         <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
                             <button class="btn" onclick="executeRedirect('${targetUrl.replace(/'/g, "\\'")}')">Weiter zur Zielseite</button>
@@ -510,7 +549,7 @@
                 loadingContainer.innerHTML = `
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
-                        <div class="warning-text">${warningText}</div>
+                        <div class="warning-text">${processedWarning}</div>
                         <p>Bitte warten Sie <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
                         <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
@@ -531,7 +570,7 @@
                             message.textContent = 'Sie können jetzt fortfahren';
                         }
                     }
-                });
+                }, targetUrl, warningDelay);
             }
         }
 
@@ -540,7 +579,6 @@
             let showWarning = false;
             let directoryEntry = null;
 
-            // Direct URL forwarding
             if (directUrl) {
                 if (validateUrl(directUrl)) {
                     targetUrl = directUrl;
@@ -553,7 +591,6 @@
                     return;
                 }
             }
-            // Directory-based forwarding
             else if (directoryId) {
                 const directory = await loadDirectory();
                 
@@ -570,7 +607,6 @@
                     directoryEntry = directory[directoryId];
                     targetUrl = directoryEntry.url;
                     
-                    // Check if warning should be shown
                     if (directoryEntry.warning) {
                         showWarning = true;
                     }
@@ -583,12 +619,10 @@
                     return;
                 }
             }
-            // No parameters provided
             else {
                 targetUrl = 'https://proeve.net';
             }
 
-            // Show warning or redirect
             if (showWarning && directoryEntry) {
                 showWarningInterface(directoryEntry, directoryId);
             } else if (targetUrl) {
@@ -596,7 +630,6 @@
             }
         }
 
-        // Start redirect process
         redirect();
     </script>
 </body>

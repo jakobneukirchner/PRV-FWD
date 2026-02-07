@@ -44,6 +44,6 @@
 go1;https://proeve.net
 shop;https://proeve.net/shop
 presse;https://proeve.net/archiv/medienart/presse/
-
+en;https://partner.com;<h3>Translation warning</h3><p>We cannot be held liable for translation errors. The page will be translated with Google Translate</p><p><strong>{url}</strong></p><ul><li>You will be redirected in {delay} second</li><li>Externe Website</li></ul>;auto;10
 # Example with variables (remove # to activate):
 # test;https://google.com;<p>Noch <strong>{countdown}</strong> Sekunden bis zur Weiterleitung zu {url}</p><p>Von insgesamt {delay} Sekunden.</p>;auto;10

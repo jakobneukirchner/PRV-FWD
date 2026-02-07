@@ -1,27 +1,39 @@
 # URL Directory for proeve.net forwarding service
 # Format: ID;URL;WARNING_TEXT;WARNING_MODE;WARNING_DELAY
 # 
-# WARNING_TEXT: Optional warning text to display before redirect
-# WARNING_MODE: auto (default), button, button-delay
+# WARNING_TEXT: Optional warning text to display before redirect (supports HTML formatting)
+# WARNING_MODE: auto (default), wait, button, button-delay
 # WARNING_DELAY: Seconds to wait (default: 5)
 #
+# HTML Formatting in WARNING_TEXT:
+# - Use <strong>text</strong> for bold (gold color)
+# - Use <em>text</em> for italic
+# - Use <h3>heading</h3> for sub-headings
+# - Use <p>paragraph</p> for paragraphs
+# - Use <ul><li>item</li></ul> for bullet lists
+# - Use <ol><li>item</li></ol> for numbered lists
+#
 # Examples:
-# Simple redirect:
+#
+# Simple redirect without warning:
 # go1;https://google.com
 #
-# With warning and auto redirect after 5 seconds:
-# go2;https://example.com;This is an external website;auto;5
+# With HTML formatted warning, auto redirect after 5 seconds:
+# go2;https://example.com;<p>Sie werden weitergeleitet zu einer <strong>externen Website</strong>.</p><p>Bitte beachten Sie unsere Datenschutzrichtlinien.</p>;auto;5
 #
 # With warning and button click required:
-# go3;https://example.com;Please confirm before proceeding;button
+# go3;https://example.com;<h3>Wichtiger Hinweis</h3><p>Bitte lesen Sie folgende Punkte:</p><ul><li>Punkt 1</li><li>Punkt 2</li></ul>;button
+#
+# With warning, must wait (no skip button):
+# go4;https://example.com;<p><strong>Achtung:</strong> Externe Seite</p><p>Sie müssen 10 Sekunden warten.</p>;wait;10
 #
 # With warning and button appears after delay:
-# go4;https://example.com;Please read this warning;button-delay;10
+# go5;https://example.com;<p>Bitte warten Sie, während wir Ihre Anfrage verarbeiten.</p>;button-delay;8
 
 # Active entries:
 go1;https://proeve.net
 shop;https://proeve.net/shop
 presse;https://proeve.net/archiv/medienart/presse/
 
-# Example with warning:
-# external;https://example.com;Sie werden zu einer externen Website weitergeleitet. Proeve.net übernimmt keine Verantwortung für externe Inhalte.;auto;5
+# Example with formatted warning (commented out, remove # to activate):
+# external;https://example.com;<h3>⚠️ Externe Website</h3><p>Sie verlassen jetzt <strong>proeve.net</strong> und werden zu einer externen Website weitergeleitet.</p><p><em>Hinweis:</em> Proeve.net übernimmt keine Verantwortung für externe Inhalte.</p>;wait;8

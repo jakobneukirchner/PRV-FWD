@@ -34,6 +34,7 @@
 go1;https://proeve.net
 shop;https://proeve.net/shop
 presse;https://proeve.net/archiv/medienart/presse/
+en;https://proeve-net.translate.goog/?_x_tr_sl=de&_x_tr_tl=en;<h3>Achtung</h3><p><strong>Important</strong>The site will be translated with Google Translate</p><ol><li>We cannot be held liable for translation errors.</li><li>Thank you</li></ol><p>You have to wait 10 seconds</p>;wait;10
 
 # Example with formatted warning (commented out, remove # to activate):
 # external;https://example.com;<h3>⚠️ Externe Website</h3><p>Sie verlassen jetzt <strong>proeve.net</strong> und werden zu einer externen Website weitergeleitet.</p><p><em>Hinweis:</em> Proeve.net übernimmt keine Verantwortung für externe Inhalte.</p>;wait;8

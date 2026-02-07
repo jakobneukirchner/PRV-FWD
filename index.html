@@ -172,6 +172,11 @@
             font-weight: 600;
         }
 
+        .warning-text .var-delay-static {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
         .error {
             background: rgba(255, 50, 50, 0.1);
             border: 1px solid rgba(255, 50, 50, 0.3);
@@ -286,7 +291,7 @@
         <div class="info">
             <p><strong>Hinweis:</strong></p>
             <p>Für den Inhalt verlinkter externer Internetseiten wird keine Gewähr übernommen, da die Verantwortung hierfür ausschließlich beim jeweiligen Anbieter liegt.</p>
-            <p>Version: <code>V2.2.0</code></p>
+            <p>Version: <code>V2.2.1</code></p>
         </div>
     </div>
 
@@ -380,22 +385,29 @@
             window.location.href = targetUrl;
         }
 
-        function replaceVariables(text, url, delay, currentCountdown) {
+        function replaceVariables(text, url, delayStatic, currentCountdown) {
             return text
                 .replace(/\{countdown\}/g, `<span class="var-countdown">${currentCountdown}</span>`)
                 .replace(/\{url\}/g, `<span class="var-url">${escapeHtml(url)}</span>`)
-                .replace(/\{delay\}/g, `<span class="var-delay">${delay}</span>`);
+                .replace(/\{delay-static\}/g, `<span class="var-delay-static">${delayStatic}</span>`)
+                .replace(/\{delay\}/g, `<span class="var-delay">${currentCountdown}</span>`);
         }
 
-        function updateVariablesInText(url, delay, currentCountdown) {
+        function updateVariablesInText(url, delayStatic, currentCountdown) {
             // Update all countdown variables
             const countdownElements = document.querySelectorAll('.var-countdown');
             countdownElements.forEach(el => {
                 el.textContent = currentCountdown;
             });
+            
+            // Update all delay variables (also countdown)
+            const delayElements = document.querySelectorAll('.var-delay');
+            delayElements.forEach(el => {
+                el.textContent = currentCountdown;
+            });
         }
 
-        function startCountdown(seconds, callback, url, delay) {
+        function startCountdown(seconds, callback, url, delayStatic) {
             let remaining = seconds;
             const countdownElement = document.getElementById('countdown');
             
@@ -403,14 +415,14 @@
             if (countdownElement) {
                 countdownElement.textContent = remaining;
             }
-            updateVariablesInText(url, delay, remaining);
+            updateVariablesInText(url, delayStatic, remaining);
             
             countdownInterval = setInterval(() => {
                 remaining--;
                 if (countdownElement) {
                     countdownElement.textContent = remaining;
                 }
-                updateVariablesInText(url, delay, remaining);
+                updateVariablesInText(url, delayStatic, remaining);
                 
                 if (remaining <= 0) {
                     clearInterval(countdownInterval);

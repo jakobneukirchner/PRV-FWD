@@ -1,40 +1,49 @@
 # URL Directory for proeve.net forwarding service
 # Format: ID;URL;WARNING_TEXT;WARNING_MODE;WARNING_DELAY
 # 
-# WARNING_TEXT: Optional warning text to display before redirect (supports HTML formatting)
+# WARNING_TEXT: Optional warning text to display before redirect
+#              Supports HTML formatting AND variables!
 # WARNING_MODE: auto (default), wait, button, button-delay
 # WARNING_DELAY: Seconds to wait (default: 5)
 #
-# HTML Formatting in WARNING_TEXT:
-# - Use <strong>text</strong> for bold (gold color)
-# - Use <em>text</em> for italic
-# - Use <h3>heading</h3> for sub-headings
-# - Use <p>paragraph</p> for paragraphs
-# - Use <ul><li>item</li></ul> for bullet lists
-# - Use <ol><li>item</li></ol> for numbered lists
+# ===== VARIABLES IN WARNING_TEXT =====
+# You can use these variables in WARNING_TEXT:
 #
-# Examples:
+# {countdown}  - Live countdown timer (updates every second)
+# {url}        - Target URL
+# {delay}      - Initial delay value (doesn't change)
+#
+# Variables are automatically styled in gold color!
+#
+# ===== HTML FORMATTING =====
+# - <strong>text</strong> for bold (gold color)
+# - <em>text</em> for italic
+# - <h3>heading</h3> for sub-headings (gold)
+# - <p>paragraph</p> for paragraphs
+# - <ul><li>item</li></ul> for bullet lists
+# - <ol><li>item</li></ol> for numbered lists
+#
+# ===== EXAMPLES =====
 #
 # Simple redirect without warning:
 # go1;https://google.com
 #
-# With HTML formatted warning, auto redirect after 5 seconds:
-# go2;https://example.com;<p>Sie werden weitergeleitet zu einer <strong>externen Website</strong>.</p><p>Bitte beachten Sie unsere Datenschutzrichtlinien.</p>;auto;5
+# With countdown variable:
+# example1;https://example.com;<p>Weiterleitung in <strong>{countdown}</strong> Sekunden zur Website <strong>{url}</strong></p>;auto;8
 #
-# With warning and button click required:
-# go3;https://example.com;<h3>Wichtiger Hinweis</h3><p>Bitte lesen Sie folgende Punkte:</p><ul><li>Punkt 1</li><li>Punkt 2</li></ul>;button
+# With all variables:
+# example2;https://example.com;<h3>Bitte warten</h3><p>Sie werden in {countdown} Sekunden weitergeleitet.</p><p>Ziel: {url}</p><p>Gesamtwartezeit: {delay} Sekunden</p>;wait;10
 #
-# With warning, must wait (no skip button):
-# go4;https://example.com;<p><strong>Achtung:</strong> Externe Seite</p><p>Sie müssen 10 Sekunden warten.</p>;wait;10
+# Complex example with HTML and variables:
+# partner;https://partner.com;<h3>🔗 Partner-Link</h3><p>Sie werden in {countdown} Sekunden zu unserem Partner weitergeleitet:</p><p><strong>{url}</strong></p><ul><li>Wartezeit: {delay} Sekunden</li><li>Externe Website</li></ul>;auto;6
 #
-# With warning and button appears after delay:
-# go5;https://example.com;<p>Bitte warten Sie, während wir Ihre Anfrage verarbeiten.</p>;button-delay;8
+# Warning without countdown (button mode):
+# external;https://external.com;<h3>⚠️ Externe Website</h3><p>Sie verlassen proeve.net und gehen zu:</p><p>{url}</p><p>Bitte bestätigen Sie mit dem Button.</p>;button
 
 # Active entries:
 go1;https://proeve.net
 shop;https://proeve.net/shop
 presse;https://proeve.net/archiv/medienart/presse/
-en;https://proeve-net.translate.goog/?_x_tr_sl=de&_x_tr_tl=en;<h3>Achtung</h3><p><strong>Important</strong>The site will be translated with Google Translate</p><ol><li>We cannot be held liable for translation errors.</li><li>Thank you</li></ol><p>You have to wait 10 seconds</p>;wait;10
 
-# Example with formatted warning (commented out, remove # to activate):
-# external;https://example.com;<h3>⚠️ Externe Website</h3><p>Sie verlassen jetzt <strong>proeve.net</strong> und werden zu einer externen Website weitergeleitet.</p><p><em>Hinweis:</em> Proeve.net übernimmt keine Verantwortung für externe Inhalte.</p>;wait;8
+# Example with variables (remove # to activate):
+# test;https://google.com;<p>Noch <strong>{countdown}</strong> Sekunden bis zur Weiterleitung zu {url}</p><p>Von insgesamt {delay} Sekunden.</p>;auto;10

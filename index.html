@@ -119,11 +119,40 @@
 
         .warning-text {
             background: rgba(0, 0, 0, 0.3);
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 6px;
             margin: 1rem 0;
-            font-style: italic;
             color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .warning-text h3 {
+            color: var(--accent-gold);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .warning-text h3:first-child {
+            margin-top: 0;
+        }
+
+        .warning-text p {
+            margin-bottom: 0.8rem;
+        }
+
+        .warning-text ul, .warning-text ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .warning-text strong {
+            color: var(--accent-gold);
+        }
+
+        .warning-text em {
+            font-style: italic;
+            color: var(--text-primary);
         }
 
         .error {
@@ -240,7 +269,7 @@
         <div class="info">
             <p><strong>Hinweis:</strong></p>
             <p>Für den Inhalt verlinkter externer Internetseiten wird keine Gewähr übernommen, da die Verantwortung hierfür ausschließlich beim jeweiligen Anbieter liegt.</p>
-            <p>Version: <code>V2.0.0</code></p>
+            <p>Version: <code>V2.1.0</code></p>
         </div>
     </div>
 
@@ -250,7 +279,7 @@
         const directUrl = urlParams.get('fwd');
         const directoryId = urlParams.get('fwd-v');
         const delayParam = urlParams.get('delay'); // Delay in seconds
-        const modeParam = urlParams.get('mode'); // auto, button, button-delay
+        const modeParam = urlParams.get('mode'); // auto, instant, button, button-delay, wait
 
         const loadingContainer = document.getElementById('loadingContainer');
         const targetUrlElement = document.getElementById('targetUrl');
@@ -260,7 +289,7 @@
 
         // Parse mode parameter
         if (modeParam) {
-            const validModes = ['auto', 'instant', 'button', 'button-delay'];
+            const validModes = ['auto', 'instant', 'button', 'button-delay', 'wait'];
             if (validModes.includes(modeParam)) {
                 redirectMode = modeParam;
             }
@@ -323,7 +352,7 @@
                 <div class="error">
                     <h2>${title}</h2>
                     <p>${message}</p>
-                    ${url ? `<a href="${url}" class="btn">Weiter</a>` : ''}
+                    ${url ? `<a href="${url}" class="btn">Zurück zu Proeve.net</a>` : ''}
                 </div>
             `;
         }
@@ -349,6 +378,12 @@
             }, 1000);
         }
 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function showRedirectInterface(targetUrl, mode, delay) {
             targetUrlElement.textContent = targetUrl;
 
@@ -356,7 +391,7 @@
                 // Instant redirect
                 loadingContainer.innerHTML = `
                     <p class="message">Weiterleitung...</p>
-                    <div class="target-url">${targetUrl}</div>
+                    <div class="target-url">${escapeHtml(targetUrl)}</div>
                 `;
                 executeRedirect(targetUrl);
             }
@@ -365,9 +400,22 @@
                 loadingContainer.innerHTML = `
                     <div class="spinner"></div>
                     <p class="message">Weiterleitung in <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
-                    <div class="target-url">${targetUrl}</div>
+                    <div class="target-url">${escapeHtml(targetUrl)}</div>
                     <div class="button-container">
-                        <button class="btn" onclick="executeRedirect('${targetUrl}')">Jetzt weiterleiten</button>
+                        <button class="btn" onclick="executeRedirect('${targetUrl.replace(/'/g, "\\'")}')">Jetzt weiterleiten</button>
+                        <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
+                    </div>
+                `;
+                startCountdown(delay, () => executeRedirect(targetUrl));
+            }
+            else if (mode === 'wait') {
+                // Wait mode - no button, must wait
+                loadingContainer.innerHTML = `
+                    <div class="spinner"></div>
+                    <p class="message">Bitte warten Sie <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
+                    <div class="target-url">${escapeHtml(targetUrl)}</div>
+                    <div class="button-container">
+                        <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                     </div>
                 `;
                 startCountdown(delay, () => executeRedirect(targetUrl));
@@ -376,10 +424,10 @@
                 // Button click required
                 loadingContainer.innerHTML = `
                     <p class="message">Klicken Sie auf den Button, um fortzufahren</p>
-                    <div class="target-url">${targetUrl}</div>
+                    <div class="target-url">${escapeHtml(targetUrl)}</div>
                     <div class="button-container">
-                        <button class="btn" onclick="executeRedirect('${targetUrl}')">Weiter zur Zielseite</button>
-                        <a href="https://proeve.net" class="btn btn-secondary">Abbrechen</a>
+                        <button class="btn" onclick="executeRedirect('${targetUrl.replace(/'/g, "\\'")}')">Weiter zur Zielseite</button>
+                        <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                     </div>
                 `;
             }
@@ -387,10 +435,11 @@
                 // Button appears after delay
                 loadingContainer.innerHTML = `
                     <div class="spinner"></div>
-                    <p class="message">Button wird verfügbar in <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
-                    <div class="target-url">${targetUrl}</div>
+                    <p class="message">Bitte warten Sie <span class="countdown" id="countdown">${delay}</span> Sekunden...</p>
+                    <div class="target-url">${escapeHtml(targetUrl)}</div>
                     <div class="button-container">
                         <button class="btn" id="delayedButton" disabled>Bitte warten...</button>
+                        <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                     </div>
                 `;
                 
@@ -400,8 +449,10 @@
                         button.disabled = false;
                         button.textContent = 'Weiter zur Zielseite';
                         button.onclick = () => executeRedirect(targetUrl);
-                        document.querySelector('.spinner').remove();
-                        document.querySelector('.message').textContent = 'Sie können jetzt fortfahren';
+                        const spinner = document.querySelector('.spinner');
+                        if (spinner) spinner.remove();
+                        const message = document.querySelector('.message');
+                        if (message) message.textContent = 'Sie können jetzt fortfahren';
                     }
                 });
             }
@@ -419,10 +470,24 @@
                         <h2>⚠️ Hinweis</h2>
                         <div class="warning-text">${warningText}</div>
                         <p>Weiterleitung in <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
-                        <div class="target-url">${targetUrl}</div>
+                        <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
-                            <button class="btn" onclick="executeRedirect('${targetUrl}')">Jetzt weiterleiten</button>
-                            <a href="https://proeve.net" class="btn btn-secondary">Abbrechen</a>
+                            <button class="btn" onclick="executeRedirect('${targetUrl.replace(/'/g, "\\'")}')">Jetzt weiterleiten</button>
+                            <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
+                        </div>
+                    </div>
+                `;
+                startCountdown(warningDelay, () => executeRedirect(targetUrl));
+            }
+            else if (warningMode === 'wait') {
+                loadingContainer.innerHTML = `
+                    <div class="warning-box">
+                        <h2>⚠️ Hinweis</h2>
+                        <div class="warning-text">${warningText}</div>
+                        <p>Weiterleitung in <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
+                        <div class="target-url">${escapeHtml(targetUrl)}</div>
+                        <div class="button-container">
+                            <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                         </div>
                     </div>
                 `;
@@ -433,10 +498,10 @@
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
                         <div class="warning-text">${warningText}</div>
-                        <div class="target-url">${targetUrl}</div>
+                        <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
-                            <button class="btn" onclick="executeRedirect('${targetUrl}')">Weiter zur Zielseite</button>
-                            <a href="https://proeve.net" class="btn btn-secondary">Abbrechen</a>
+                            <button class="btn" onclick="executeRedirect('${targetUrl.replace(/'/g, "\\'")}')">Weiter zur Zielseite</button>
+                            <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                         </div>
                     </div>
                 `;
@@ -446,11 +511,11 @@
                     <div class="warning-box">
                         <h2>⚠️ Hinweis</h2>
                         <div class="warning-text">${warningText}</div>
-                        <p>Button wird verfügbar in <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
-                        <div class="target-url">${targetUrl}</div>
+                        <p>Bitte warten Sie <span class="countdown" id="countdown">${warningDelay}</span> Sekunden...</p>
+                        <div class="target-url">${escapeHtml(targetUrl)}</div>
                         <div class="button-container">
                             <button class="btn" id="delayedButton" disabled>Bitte warten...</button>
-                            <a href="https://proeve.net" class="btn btn-secondary">Abbrechen</a>
+                            <a href="https://proeve.net" class="btn btn-secondary">Zurück zu Proeve.net</a>
                         </div>
                     </div>
                 `;
@@ -461,7 +526,10 @@
                         button.disabled = false;
                         button.textContent = 'Weiter zur Zielseite';
                         button.onclick = () => executeRedirect(targetUrl);
-                        document.querySelector('.message')?.remove();
+                        const message = document.querySelector('.warning-box p');
+                        if (message && message.querySelector('#countdown')) {
+                            message.textContent = 'Sie können jetzt fortfahren';
+                        }
                     }
                 });
             }
